@@ -1,0 +1,23 @@
+{
+  "name": "ktmt-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kiến trúc Máy tính IT3030E — học từ số 0, có mô phỏng RISC-V",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "node scripts/test-riscv.mjs"
+  },
+  "dependencies": {
+    "next": "^16.4.6",
+    "react": "~19.1.0",
+    "react-dom": "~19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}

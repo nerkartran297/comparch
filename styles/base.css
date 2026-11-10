@@ -1,0 +1,126 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: 80px;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body), 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: var(--text-md);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display), 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings: 'wdth' 88;
+  line-height: 1.15;
+  text-wrap: balance;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--accent-ink);
+  text-underline-offset: 3px;
+}
+
+code,
+kbd,
+pre,
+.mono {
+  font-family: var(--font-mono), 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* syntax tokens */
+.tk-m { color: var(--tk-m); font-weight: 600; }
+.tk-r { color: var(--tk-r); }
+.tk-n { color: var(--tk-n); }
+.tk-s { color: var(--tk-s); }
+.tk-c { color: var(--tk-c); font-style: italic; }
+.tk-d { color: var(--tk-d); }
+.tk-l { color: var(--tk-l); font-weight: 600; }
+.tk-ref { color: var(--tk-l); }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Grid một cột: không cho nội dung rộng (bảng, dãy bit) kéo giãn cột → chúng tự cuộn ngang bên trong. */
+.lesson,
+.page,
+.lesson-body,
+.sec,
+.sub,
+.widget-body,
+.note-body,
+.fb,
+.solution-body,
+.problem-body,
+.quiz,
+.cr-lane,
+.ie-steps,
+.sd-info {
+  grid-template-columns: minmax(0, 1fr);
+}

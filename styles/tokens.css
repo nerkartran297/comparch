@@ -1,0 +1,129 @@
+/* Bố cục: sổ tay phòng lab — cột lộ trình bên trái như một đường ống (pipeline) các bước,
+   nội dung đọc ở giữa, Lab RISC-V trượt ra như một bàn đo.
+   Màu: mực xanh chàm (accent) + hổ phách kiểu đèn tín hiệu (signal = "đang chạy / đang chọn").
+   Bảng màu trường lệnh (op/rd/f3/rs1/rs2/f7/imm) dùng chung cho mã hoá lệnh và IEEE 754. */
+:root {
+  --paper: #f4f5fa;
+  --panel: #ffffff;
+  --sunk: #eceef6;
+  --ink: #151a31;
+  --muted: #576079;
+  --faint: #8a91aa;
+  --line: #d8dbe8;
+  --accent: #2d3a8f;
+  --accent-ink: #2d3a8f;
+  --accent-soft: #e3e6f8;
+  --signal: #e09d14;
+  --signal-ink: #8a5a00;
+  --signal-soft: #fcefcf;
+  --ok: #1b8354;
+  --ok-soft: #dcf1e6;
+  --bad: #bd392f;
+  --bad-soft: #f9e0dc;
+  --shadow: 0 1px 2px rgb(21 26 49 / 0.06), 0 6px 24px rgb(21 26 49 / 0.06);
+
+  --f-op: #7257e6;
+  --f-rd: #d4602a;
+  --f-f3: #1d9166;
+  --f-rs1: #2e66d6;
+  --f-rs2: #0b8fa4;
+  --f-f7: #c43a82;
+  --f-imm: #a37707;
+
+  --tk-m: #2d3a8f;
+  --tk-r: #b4501f;
+  --tk-n: #0b7d8f;
+  --tk-s: #1d8159;
+  --tk-c: #8a91aa;
+  --tk-d: #b5317a;
+  --tk-l: #7257e6;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+
+  --text-xs: 0.78rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.18rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+  --text-3xl: clamp(2.2rem, 5vw, 3.3rem);
+
+  --sidebar-w: 280px;
+  --read-w: 46rem;
+  --wide-w: 64rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #0e1120;
+    --panel: #151a2e;
+    --sunk: #0a0d19;
+    --ink: #e4e7f3;
+    --muted: #9aa2c0;
+    --faint: #6c7495;
+    --line: #283052;
+    --accent: #8f9cff;
+    --accent-ink: #aab4ff;
+    --accent-soft: #212859;
+    --signal: #f2b13a;
+    --signal-ink: #f6c461;
+    --signal-soft: #3a2d10;
+    --ok: #4cc58c;
+    --ok-soft: #10301f;
+    --bad: #f27b6f;
+    --bad-soft: #3d1a17;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 28px rgb(0 0 0 / 0.25);
+    --f-op: #a28fff;
+    --f-rd: #f28d58;
+    --f-f3: #4cc390;
+    --f-rs1: #6f9cff;
+    --f-rs2: #3ac4d8;
+    --f-f7: #ec74b0;
+    --f-imm: #d9ad3a;
+    --tk-m: #aab4ff;
+    --tk-r: #f2a072;
+    --tk-n: #5fd3e3;
+    --tk-s: #6fd3a1;
+    --tk-c: #6c7495;
+    --tk-d: #ef8cc0;
+    --tk-l: #b8a8ff;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --paper: #0e1120;
+  --panel: #151a2e;
+  --sunk: #0a0d19;
+  --ink: #e4e7f3;
+  --muted: #9aa2c0;
+  --faint: #6c7495;
+  --line: #283052;
+  --accent: #8f9cff;
+  --accent-ink: #aab4ff;
+  --accent-soft: #212859;
+  --signal: #f2b13a;
+  --signal-ink: #f6c461;
+  --signal-soft: #3a2d10;
+  --ok: #4cc58c;
+  --ok-soft: #10301f;
+  --bad: #f27b6f;
+  --bad-soft: #3d1a17;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 28px rgb(0 0 0 / 0.25);
+  --f-op: #a28fff;
+  --f-rd: #f28d58;
+  --f-f3: #4cc390;
+  --f-rs1: #6f9cff;
+  --f-rs2: #3ac4d8;
+  --f-f7: #ec74b0;
+  --f-imm: #d9ad3a;
+  --tk-m: #aab4ff;
+  --tk-r: #f2a072;
+  --tk-n: #5fd3e3;
+  --tk-s: #6fd3a1;
+  --tk-c: #6c7495;
+  --tk-d: #ef8cc0;
+  --tk-l: #b8a8ff;
+  color-scheme: dark;
+}
