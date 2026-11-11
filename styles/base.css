@@ -124,3 +124,18 @@ svg {
 .sd-info {
   grid-template-columns: minmax(0, 1fr);
 }
+
+/* Song ngữ: cả hai bản cùng có trong HTML, <html data-lang> quyết định bản nào hiện (components/i18n.tsx). */
+.l-vi,
+.l-en {
+  display: contents;
+}
+:root[data-lang='en'] .l-vi,
+:root:not([data-lang='en']) .l-en {
+  display: none !important;
+}
+/* Trong SVG không dùng được display: contents → bọc mỗi ngôn ngữ bằng <g className="svg-vi|svg-en">. */
+:root[data-lang='en'] .svg-vi,
+:root:not([data-lang='en']) .svg-en {
+  display: none;
+}

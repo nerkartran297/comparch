@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as RV from '@/lib/riscv.mjs';
 import { EXAMPLES } from '@/lib/examples.mjs';
 import { describe } from '@/lib/describe';
+import { useLang } from '@/lib/lang';
+import { L } from '@/components/i18n';
 import Editor from './Editor';
 import ExecView from './ExecView';
 import RegPanel from './RegPanel';
@@ -15,16 +17,23 @@ export type Prog = ReturnType<typeof RV.assemble>;
 export type SimT = InstanceType<typeof RV.Sim>;
 
 const SPEEDS = [
-  { id: '1', label: '1 lệnh/giây', ms: 1000 },
-  { id: '3', label: '3 lệnh/giây', ms: 333 },
-  { id: '10', label: '10 lệnh/giây', ms: 100 },
-  { id: '50', label: '50 lệnh/giây', ms: 20 },
-  { id: 'max', label: 'Nhanh nhất', ms: 0 },
+  { id: '1', label: ['1 lệnh/giây', '1 instr/s'], ms: 1000 },
+  { id: '3', label: ['3 lệnh/giây', '3 instr/s'], ms: 333 },
+  { id: '10', label: ['10 lệnh/giây', '10 instr/s'], ms: 100 },
+  { id: '50', label: ['50 lệnh/giây', '50 instr/s'], ms: 20 },
+  { id: 'max', label: ['Nhanh nhất', 'Fastest'], ms: 0 },
 ];
 const MAX_STEPS = 5_000_000;
 const DEFAULT = EXAMPLES.find((e) => e.id === 'arith')!;
 
 const GROUPS = Array.from(new Set(EXAMPLES.map((e) => e.group)));
+const GROUP_EN: Record<string, string> = { 'Chương 3': 'Chapter 3', 'Chương 4': 'Chapter 4', 'Bài tập Ch3': 'Ch. 3 exercises' };
+
+/** Ngôn ngữ của trang lúc này (đọc thẳng từ <html>, dùng được ngay khi mount). */
+const docLang = (): 'vi' | 'en' =>
+  typeof document !== 'undefined' && document.documentElement.getAttribute('data-lang') === 'en' ? 'en' : 'vi';
+const exCode = (ex: (typeof EXAMPLES)[number], l: 'vi' | 'en') => (l === 'en' && ex.en ? ex.en.code : ex.code);
+const exTitle = (ex: (typeof EXAMPLES)[number], l: 'vi' | 'en') => (l === 'en' && ex.en ? ex.en.title : ex.title);
 
 type Props = {
   initialCode?: string;
@@ -37,9 +46,13 @@ export default function Lab({ initialCode, initialTitle, autoAssemble = false, o
   const simRef = useRef<SimT | null>(null);
   if (!simRef.current) simRef.current = new RV.Sim();
   const sim = simRef.current;
+  const [lang] = useLang();
+  const T = (vi: string, en: string) => (lang === 'en' ? en : vi);
+  const nf = (n: number) => n.toLocaleString(lang === 'en' ? 'en-US' : 'vi-VN');
 
   const [code, setCode] = useState(initialCode ?? DEFAULT.code);
   const [title, setTitle] = useState(initialTitle ?? (initialCode ? 'Code từ bài học' : DEFAULT.title));
+  const titleFromCaller = useRef(initialTitle !== undefined);
   const [exampleId, setExampleId] = useState(initialCode ? '' : DEFAULT.id);
   const [prog, setProg] = useState<Prog | null>(null);
   const [mode, setMode] = useState<'edit' | 'run'>('edit');
@@ -59,6 +72,7 @@ export default function Lab({ initialCode, initialTitle, autoAssemble = false, o
     (src: string) => {
       setRunning(false);
       setWarn('');
+      RV.setLang(docLang());
       const p = RV.assemble(src);
       setProg(p);
       if (!p.ok) {
@@ -78,10 +92,37 @@ export default function Lab({ initialCode, initialTitle, autoAssemble = false, o
   );
 
   useEffect(() => {
+    if (!initialCode && docLang() === 'en') {
+      const c = exCode(DEFAULT, 'en');
+      setCode(c);
+      assembleNow(c);
+      return;
+    }
     if (autoAssemble || !initialCode) assembleNow(initialCode ?? DEFAULT.code);
     // chỉ chạy một lần khi mở
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Đổi ngôn ngữ: chương trình mẫu chưa sửa thì đổi sang bản cùng ngôn ngữ (nếu chưa chạy dở);
+  // còn lỗi dịch thì dịch lại để thông báo lỗi theo ngôn ngữ mới.
+  const firstLang = useRef(true);
+  useEffect(() => {
+    RV.setLang(lang);
+    if (firstLang.current) { firstLang.current = false; return; }
+    const ex = EXAMPLES.find((e) => e.id === exampleId);
+    if (ex) {
+      const other = exCode(ex, lang === 'en' ? 'vi' : 'en');
+      const next = exCode(ex, lang);
+      if (code === other && next !== other && (mode === 'edit' || sim.count === 0)) {
+        setCode(next);
+        if (mode === 'run') assembleNow(next);
+        return;
+      }
+    }
+    if (mode === 'edit' && prog && !prog.ok) setProg(RV.assemble(code));
+    // chỉ theo dõi đổi ngôn ngữ
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
 
   // vòng chạy tự động
   useEffect(() => {
@@ -103,7 +144,9 @@ export default function Lab({ initialCode, initialTitle, autoAssemble = false, o
     };
     const guard = () => {
       if (++stepsRun.current > MAX_STEPS) {
-        setWarn(`Đã chạy hơn ${MAX_STEPS.toLocaleString('vi-VN')} lệnh — có thể bị lặp vô hạn. Lab tự dừng lại.`);
+        setWarn(docLang() === 'en'
+          ? `Ran more than ${MAX_STEPS.toLocaleString('en-US')} instructions — probably an infinite loop. The Lab stopped.`
+          : `Đã chạy hơn ${MAX_STEPS.toLocaleString('vi-VN')} lệnh — có thể bị lặp vô hạn. Lab tự dừng lại.`);
         setRunning(false);
         return true;
       }
@@ -158,7 +201,7 @@ export default function Lab({ initialCode, initialTitle, autoAssemble = false, o
   };
   const onInput = (s: string) => {
     const r = sim.provideInput(s);
-    if (!r.ok) return r.msg ?? 'Giá trị không hợp lệ';
+    if (!r.ok) return r.msg ?? T('Giá trị không hợp lệ', 'Invalid value');
     rerender();
     if (resumeRef.current) { resumeRef.current = false; setRunning(true); }
     return '';
@@ -170,9 +213,11 @@ export default function Lab({ initialCode, initialTitle, autoAssemble = false, o
     const ex = EXAMPLES.find((e) => e.id === id);
     if (!ex) return;
     setExampleId(id);
-    setCode(ex.code);
+    const c = exCode(ex, lang);
+    setCode(c);
     setTitle(ex.title);
-    assembleNow(ex.code);
+    titleFromCaller.current = false;
+    assembleNow(c);
   };
 
   // lệnh đang xem trong khung giải mã: dòng được chọn, hoặc lệnh sắp chạy (PC)
@@ -185,55 +230,64 @@ export default function Lab({ initialCode, initialTitle, autoAssemble = false, o
 
   const errors = prog && !prog.ok ? prog.errors : [];
   const status = (() => {
-    if (mode === 'edit') return errors.length ? `${errors.length} lỗi khi dịch — sửa rồi bấm Dịch lại` : 'Đang sửa code. Bấm “Dịch” để chuyển sang chế độ chạy.';
+    if (mode === 'edit')
+      return errors.length
+        ? T(`${errors.length} lỗi khi dịch — sửa rồi bấm Dịch lại`, `${errors.length} assembly error(s) — fix them and press Assemble again`)
+        : T('Đang sửa code. Bấm “Dịch” để chuyển sang chế độ chạy.', 'Editing code. Press “Assemble” to switch to run mode.');
     if (sim.error) return sim.haltMsg;
-    if (sim.waiting) return 'Chương trình đang chờ bạn nhập ở khung Màn hình';
+    if (sim.waiting) return T('Chương trình đang chờ bạn nhập ở khung Màn hình', 'The program is waiting for your input in the Console panel');
     if (sim.halted) return sim.haltMsg;
-    if (running) return `Đang chạy… ${sim.count.toLocaleString('vi-VN')} lệnh`;
-    return sim.count ? `Đã chạy ${sim.count.toLocaleString('vi-VN')} lệnh. Lệnh sắp chạy được tô vàng.` : 'Sẵn sàng. Bấm “Bước” để chạy lệnh đầu tiên (dòng tô vàng).';
+    if (running) return T(`Đang chạy… ${nf(sim.count)} lệnh`, `Running… ${nf(sim.count)} instructions`);
+    return sim.count
+      ? T(`Đã chạy ${nf(sim.count)} lệnh. Lệnh sắp chạy được tô vàng.`, `Ran ${nf(sim.count)} instructions. The next instruction is highlighted in yellow.`)
+      : T('Sẵn sàng. Bấm “Bước” để chạy lệnh đầu tiên (dòng tô vàng).', 'Ready. Press “Step” to run the first instruction (the yellow row).');
   })();
+  const curEx = EXAMPLES.find((e) => e.id === exampleId);
+  const shownTitle = curEx && !titleFromCaller.current
+    ? exTitle(curEx, lang)
+    : title === 'Code từ bài học' ? T('Code từ bài học', 'Code from the lesson') : title;
   const statusKind = sim.error || errors.length ? 'bad' : sim.halted && mode === 'run' ? 'ok' : sim.waiting ? 'wait' : '';
 
   return (
     <div className="lab">
       <div className="lab-head">
         <div className="lab-title">
-          <span className="lab-kicker">Lab RISC-V · mô phỏng kiểu RARS</span>
-          <strong>{title}</strong>
+          <span className="lab-kicker"><L vi="Lab RISC-V · mô phỏng kiểu RARS" en="RISC-V Lab · a RARS-style simulator" /></span>
+          <strong>{shownTitle}</strong>
         </div>
         <label className="lab-ex">
-          <span className="visually-hidden">Chọn chương trình mẫu</span>
+          <span className="visually-hidden"><L vi="Chọn chương trình mẫu" en="Choose a sample program" /></span>
           <select id="lab-example" value={exampleId} onChange={(e) => loadExample(e.target.value)}>
-            <option value="" disabled>Chọn chương trình mẫu…</option>
+            <option value="" disabled>{T('Chọn chương trình mẫu…', 'Choose a sample program…')}</option>
             {GROUPS.map((g) => (
-              <optgroup key={g} label={g}>
+              <optgroup key={g} label={lang === 'en' ? (GROUP_EN[g] ?? g) : g}>
                 {EXAMPLES.filter((e) => e.group === g).map((e) => (
-                  <option key={e.id} value={e.id}>{e.title}</option>
+                  <option key={e.id} value={e.id}>{exTitle(e, lang)}</option>
                 ))}
               </optgroup>
             ))}
           </select>
         </label>
-        {onClose && <button className="lab-close" onClick={onClose} aria-label="Đóng Lab">✕ Đóng</button>}
+        {onClose && <button className="lab-close" onClick={onClose} aria-label={T('Đóng Lab', 'Close the Lab')}>✕ <L vi="Đóng" en="Close" /></button>}
       </div>
 
-      <div className="lab-toolbar" role="toolbar" aria-label="Điều khiển chạy">
+      <div className="lab-toolbar" role="toolbar" aria-label={T('Điều khiển chạy', 'Run controls')}>
         {mode === 'edit' ? (
-          <button className="lab-btn primary" onClick={() => assembleNow(code)}>⚙ Dịch (Assemble)</button>
+          <button className="lab-btn primary" onClick={() => assembleNow(code)}>⚙ <L vi="Dịch (Assemble)" en="Assemble" /></button>
         ) : (
-          <button className="lab-btn" onClick={() => { setRunning(false); setMode('edit'); }}>✎ Sửa code</button>
+          <button className="lab-btn" onClick={() => { setRunning(false); setMode('edit'); }}>✎ <L vi="Sửa code" en="Edit code" /></button>
         )}
         <span className="lab-sep" />
-        <button className="lab-btn" onClick={doBack} disabled={mode !== 'run' || sim.history.length === 0} title="Lùi lại 1 lệnh">⏮ Lùi</button>
-        <button className="lab-btn" onClick={doStep} disabled={mode !== 'run' || (!sim.canStep() && !sim.waiting)} title="Chạy đúng 1 lệnh">⏭ Bước</button>
+        <button className="lab-btn" onClick={doBack} disabled={mode !== 'run' || sim.history.length === 0} title={T('Lùi lại 1 lệnh', 'Undo 1 instruction')}>⏮ <L vi="Lùi" en="Back" /></button>
+        <button className="lab-btn" onClick={doStep} disabled={mode !== 'run' || (!sim.canStep() && !sim.waiting)} title={T('Chạy đúng 1 lệnh', 'Run exactly 1 instruction')}>⏭ <L vi="Bước" en="Step" /></button>
         <button className={`lab-btn ${running ? 'stop' : 'go'}`} onClick={doRunToggle} disabled={mode !== 'run'}>
-          {running ? '⏸ Dừng' : sim.halted ? '▶ Chạy lại' : '▶ Chạy'}
+          {running ? <>⏸ <L vi="Dừng" en="Pause" /></> : sim.halted ? <>▶ <L vi="Chạy lại" en="Run again" /></> : <>▶ <L vi="Chạy" en="Run" /></>}
         </button>
-        <button className="lab-btn" onClick={doReset} disabled={mode !== 'run'} title="Về trạng thái ban đầu">⟲ Đặt lại</button>
+        <button className="lab-btn" onClick={doReset} disabled={mode !== 'run'} title={T('Về trạng thái ban đầu', 'Back to the initial state')}>⟲ <L vi="Đặt lại" en="Reset" /></button>
         <label className="lab-speed">
-          <span>Tốc độ</span>
+          <span><L vi="Tốc độ" en="Speed" /></span>
           <select id="lab-speed" value={speed} onChange={(e) => setSpeed(e.target.value)}>
-            {SPEEDS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+            {SPEEDS.map((s) => <option key={s.id} value={s.id}>{s.label[lang === 'en' ? 1 : 0]}</option>)}
           </select>
         </label>
       </div>
@@ -242,7 +296,7 @@ export default function Lab({ initialCode, initialTitle, autoAssemble = false, o
       <div className="lab-tabs" role="tablist">
         {(['regs', 'mem', 'io'] as const).map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
-            {t === 'regs' ? 'Thanh ghi' : t === 'mem' ? 'Bộ nhớ' : sim.waiting ? 'Màn hình ●' : 'Màn hình'}
+            {t === 'regs' ? <L vi="Thanh ghi" en="Registers" /> : t === 'mem' ? <L vi="Bộ nhớ" en="Memory" /> : <><L vi="Màn hình" en="Console" />{sim.waiting ? ' ●' : ''}</>}
           </button>
         ))}
       </div>
@@ -256,7 +310,7 @@ export default function Lab({ initialCode, initialTitle, autoAssemble = false, o
                 <ul className="lab-errors">
                   {errors.map((e, i) => (
                     <li key={i}>
-                      <button onClick={() => setFocusLine({ line: e.line, n: Date.now() })}>Dòng {e.line}</button> {e.msg}
+                      <button onClick={() => setFocusLine({ line: e.line, n: Date.now() })}><L vi="Dòng" en="Line" /> {e.line}</button> {e.msg}
                     </li>
                   ))}
                 </ul>
@@ -269,16 +323,16 @@ export default function Lab({ initialCode, initialTitle, autoAssemble = false, o
                 {viewDecoded && viewDecoded.ok && (
                   <div className="lab-decode">
                     <div className="lab-decode-head">
-                      <span>{sel != null && sel !== sim.pc ? 'Lệnh đang chọn' : 'Lệnh sắp chạy'} · {RV.hex8(viewAddr!)}</span>
-                      {sel != null && <button className="link-btn" onClick={() => setSel(null)}>Theo PC</button>}
+                      <span>{sel != null && sel !== sim.pc ? <L vi="Lệnh đang chọn" en="Selected instruction" /> : <L vi="Lệnh sắp chạy" en="Next instruction" />} · {RV.hex8(viewAddr!)}</span>
+                      {sel != null && <button className="link-btn" onClick={() => setSel(null)}><L vi="Theo PC" en="Follow PC" /></button>}
                     </div>
                     <FieldBreakdown d={viewDecoded} compact />
                     {viewAddr === sim.pc && !sim.halted && (() => {
-                      const ds = describe(viewDecoded, sim.x, sim.pc);
+                      const ds = describe(viewDecoded, sim.x, sim.pc, lang);
                       return (
                         <p className="lab-explain">
-                          <strong>Lệnh này làm gì:</strong> {ds.what}
-                          {ds.now && <><br /><strong>Với giá trị hiện tại:</strong> {ds.now}</>}
+                          <strong><L vi="Lệnh này làm gì:" en="What it does:" /></strong> {ds.what}
+                          {ds.now && <><br /><strong><L vi="Với giá trị hiện tại:" en="With the current values:" /></strong> {ds.now}</>}
                         </p>
                       );
                     })()}
@@ -292,9 +346,9 @@ export default function Lab({ initialCode, initialTitle, autoAssemble = false, o
         <section className="lab-right">
           <div className={`lab-pane pane-regs ${tab === 'regs' ? 'on' : ''}`}><RegPanel sim={sim} /></div>
           <div className="lab-subtabs" role="tablist">
-            <button role="tab" aria-selected={tab !== 'io'} className={tab !== 'io' ? 'on' : ''} onClick={() => setTab('mem')}>Bộ nhớ</button>
+            <button role="tab" aria-selected={tab !== 'io'} className={tab !== 'io' ? 'on' : ''} onClick={() => setTab('mem')}><L vi="Bộ nhớ" en="Memory" /></button>
             <button role="tab" aria-selected={tab === 'io'} className={tab === 'io' ? 'on' : ''} onClick={() => setTab('io')}>
-              {sim.waiting ? 'Màn hình ● đang chờ nhập' : 'Màn hình & nhật ký'}
+              {sim.waiting ? <L vi="Màn hình ● đang chờ nhập" en="Console ● waiting for input" /> : <L vi="Màn hình & nhật ký" en="Console & trace" />}
             </button>
           </div>
           <div className={`lab-pane pane-mem ${tab === 'mem' ? 'on' : ''} ${tab !== 'io' ? 'wide-on' : ''}`}><MemPanel sim={sim} prog={prog && prog.ok ? prog : null} /></div>

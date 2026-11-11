@@ -25,8 +25,8 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
-// đặt giao diện sáng/tối trước khi vẽ trang để không bị nháy
-const themeScript = `try{var t=JSON.parse(localStorage.getItem('ktmt-theme')||'"system"');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}`;
+// đặt giao diện sáng/tối và ngôn ngữ trước khi vẽ trang để không bị nháy
+const themeScript = `try{var d=document.documentElement;var t=JSON.parse(localStorage.getItem('ktmt-theme')||'"system"');if(t==='light'||t==='dark')d.setAttribute('data-theme',t);var l=JSON.parse(localStorage.getItem('ktmt-lang')||'"vi"');if(l==='en'){d.setAttribute('data-lang','en');d.setAttribute('lang','en')}}catch(e){}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

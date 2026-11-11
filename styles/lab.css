@@ -209,6 +209,10 @@
   display: flex;
   gap: 4px;
 }
+.lab-right > .pane-regs,
+.lab-right > .lab-subtabs {
+  min-height: max-content;
+}
 .lab-subtabs button,
 .lab-tabs button {
   border: 1px solid var(--line);

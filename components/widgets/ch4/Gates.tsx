@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Widget } from '@/components/lesson/Blocks';
+import { L } from '@/components/i18n';
+import { useT } from '@/lib/lang';
 
 type G = 'AND' | 'OR' | 'NOT' | 'NAND' | 'NOR' | 'XOR';
 const FN: Record<G, (a: number, b: number) => number> = {
@@ -40,11 +42,18 @@ export function GateSymbol({ g, a, b, out }: { g: G; a: number; b: number; out: 
 
 /** Bật/tắt A, B và xem đầu ra của 6 cổng logic cùng lúc, kèm bảng chân lý. */
 export default function Gates() {
+  const t = useT();
   const [a, setA] = useState(1);
   const [b, setB] = useState(0);
   const gates: G[] = ['AND', 'OR', 'NOT', 'NAND', 'NOR', 'XOR'];
   return (
-    <Widget title="Sáu cổng logic" hint="Bấm A và B. Dây sáng vàng = mang giá trị 1. Dòng tô vàng trong bảng chân lý là trường hợp đang chọn.">
+    <Widget
+      title={<L vi="Sáu cổng logic" en="Six logic gates" />}
+      hint={<L
+        vi="Bấm A và B. Dây sáng vàng = mang giá trị 1. Dòng tô vàng trong bảng chân lý là trường hợp đang chọn."
+        en="Click A and B. A wire lit in amber carries the value 1. The highlighted row in the truth table is the current case."
+      />}
+    >
       <div className="chips">
         <button className={`toggle${a ? ' on' : ''}`} onClick={() => setA(1 - a)} aria-pressed={!!a}><span className="knob">{a}</span>A</button>
         <button className={`toggle${b ? ' on' : ''}`} onClick={() => setB(1 - b)} aria-pressed={!!b}><span className="knob">{b}</span>B</button>
@@ -54,7 +63,7 @@ export default function Gates() {
           const o = FN[g](a, b);
           return (
             <div key={g} className="gate-card">
-              <div className="gate-top"><strong>{g}</strong><code>{FORMULA[g]}</code><span className={`lamp${o ? ' on' : ''}`} aria-label={`đầu ra ${o}`} /></div>
+              <div className="gate-top"><strong>{g}</strong><code>{FORMULA[g]}</code><span className={`lamp${o ? ' on' : ''}`} aria-label={t(`đầu ra ${o}`, `output ${o}`)} /></div>
               <GateSymbol g={g} a={a} b={b} out={o} />
             </div>
           );
@@ -74,7 +83,12 @@ export default function Gates() {
           </tbody>
         </table>
       </div>
-      <p className="widget-note">Hai cột cuối luôn bằng nhau: đó là luật <b>De Morgan</b> ¬(A·B) = Ā + B̄. (NOT chỉ dùng A.)</p>
+      <p className="widget-note">
+        <L
+          vi={<>Hai cột cuối luôn bằng nhau: đó là luật <b>De Morgan</b> ¬(A·B) = Ā + B̄. (NOT chỉ dùng A.)</>}
+          en={<>The last two columns are always equal: that is <b>De Morgan&apos;s law</b> ¬(A·B) = Ā + B̄. (NOT only uses A.)</>}
+        />
+      </p>
     </Widget>
   );
 }

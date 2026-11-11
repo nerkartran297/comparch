@@ -77,6 +77,8 @@ export class Sim {
   run(maxSteps?: number): number;
 }
 
+/** Chọn ngôn ngữ thông báo khi chạy ngoài trình duyệt (trên trình duyệt tự theo <html data-lang>). */
+export function setLang(l: 'vi' | 'en'): void;
 export function assemble(source: string): Program;
 export function decode(word: number, pc?: number): Decoded;
 export function encodeLine(line: string): { ok: true; words: { word: number; d: Decoded }[] } | { ok: false; msg: string };

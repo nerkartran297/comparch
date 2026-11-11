@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { L } from '@/components/i18n';
+import { useT } from '@/lib/lang';
 import * as RV from '@/lib/riscv.mjs';
 import type { SimT } from './Lab';
 
@@ -9,6 +11,7 @@ const GROUP = (i: number) =>
 
 /** 32 thanh ghi số nguyên (và tab số thực). Ô vừa thay đổi ở lệnh trước được tô vàng. */
 export default function RegPanel({ sim }: { sim: SimT }) {
+  const t = useT();
   const [fmt, setFmt] = useState<'dec' | 'hex'>('dec');
   const [kind, setKind] = useState<'int' | 'float'>('int');
   const rec = sim.lastRec;
@@ -19,13 +22,13 @@ export default function RegPanel({ sim }: { sim: SimT }) {
   return (
     <div className="panel">
       <div className="panel-head">
-        <div className="seg" role="group" aria-label="Loại thanh ghi">
-          <button className={kind === 'int' ? 'on' : ''} onClick={() => setKind('int')}>Số nguyên</button>
-          <button className={kind === 'float' ? 'on' : ''} onClick={() => setKind('float')}>Số thực</button>
+        <div className="seg" role="group" aria-label={t('Loại thanh ghi', 'Register kind')}>
+          <button className={kind === 'int' ? 'on' : ''} onClick={() => setKind('int')}><L vi="Số nguyên" en="Integer" /></button>
+          <button className={kind === 'float' ? 'on' : ''} onClick={() => setKind('float')}><L vi="Số thực" en="Float" /></button>
         </div>
         {kind === 'int' && (
-          <div className="seg" role="group" aria-label="Cách hiển thị">
-            <button className={fmt === 'dec' ? 'on' : ''} onClick={() => setFmt('dec')}>Thập phân</button>
+          <div className="seg" role="group" aria-label={t('Cách hiển thị', 'Display format')}>
+            <button className={fmt === 'dec' ? 'on' : ''} onClick={() => setFmt('dec')}><L vi="Thập phân" en="Decimal" /></button>
             <button className={fmt === 'hex' ? 'on' : ''} onClick={() => setFmt('hex')}>Hex</button>
           </div>
         )}
@@ -33,12 +36,12 @@ export default function RegPanel({ sim }: { sim: SimT }) {
       <div className="pc-row mono">
         <span>PC</span>
         <strong>{RV.hex8(sim.pc)}</strong>
-        <span className="pc-note">địa chỉ lệnh sắp chạy</span>
+        <span className="pc-note"><L vi="địa chỉ lệnh sắp chạy" en="address of the next instruction" /></span>
       </div>
       {kind === 'int' ? (
         <div className="regs">
           {Array.from({ length: 32 }, (_, i) => (
-            <div key={i} className={`reg g-${GROUP(i)}${changed.has(i) ? ' changed' : ''}`} title={`x${i} — tên ABI: ${RV.ABI[i]}`}>
+            <div key={i} className={`reg g-${GROUP(i)}${changed.has(i) ? ' changed' : ''}`} title={`x${i} — ${t('tên ABI', 'ABI name')}: ${RV.ABI[i]}`}>
               <span className="reg-x mono">x{i}</span>
               <span className="reg-abi mono">{RV.ABI[i]}</span>
               <span className="reg-v mono">{show(sim.x[i])}</span>
@@ -57,7 +60,7 @@ export default function RegPanel({ sim }: { sim: SimT }) {
         </div>
       )}
       <p className="legend">
-        <span className="g-t">t: tạm</span> <span className="g-s">s: cần giữ</span> <span className="g-a">a: tham số/kết quả</span>{' '}
+        <span className="g-t"><L vi="t: tạm" en="t: temporary" /></span> <span className="g-s"><L vi="s: cần giữ" en="s: saved" /></span> <span className="g-a"><L vi="a: tham số/kết quả" en="a: arguments/results" /></span>{' '}
         <span className="g-sp">ra, sp, gp, tp</span>
       </p>
     </div>

@@ -2,9 +2,11 @@
 
 Web học 4 chương đầu môn Kiến trúc Máy tính: lộ trình, giải thích chi tiết, ví dụ có lời giải lấy từ slide, mô phỏng tương tác, và **Lab RISC-V** chạy code từng lệnh ngay trên trình duyệt (kiểu RARS).
 
+Song ngữ **Tiếng Việt / English**: bấm nút **VI / EN** ở thanh bên trái (trên điện thoại: thanh trên cùng) để đổi ngôn ngữ cho toàn bộ trang, kể cả Lab và thông báo lỗi của trình mô phỏng.
+
 ## Chạy
 
-Cần Node.js 18.18 trở lên.
+Cần Node.js 20.9 trở lên (project dùng Next.js 16).
 
 ```bash
 npm install
@@ -18,7 +20,7 @@ npm run build
 npm start
 ```
 
-Kiểm tra trình mô phỏng RISC-V (dịch + chạy mọi chương trình mẫu, so kết quả, kiểm tra mã máy):
+Kiểm tra trình mô phỏng RISC-V (dịch + chạy mọi chương trình mẫu ở cả bản Việt và Anh, so kết quả, kiểm tra mã máy và thông báo lỗi hai thứ tiếng):
 
 ```bash
 npm test

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef } from 'react';
+import { useT } from '@/lib/lang';
 import { highlightAsmLine } from '@/lib/highlight';
 
 type Props = {
@@ -12,6 +13,7 @@ type Props = {
 
 /** Ô soạn code: textarea trong suốt đặt trên lớp tô màu cú pháp. */
 export default function Editor({ value, onChange, errors, focusLine }: Props) {
+  const t = useT();
   const ta = useRef<HTMLTextAreaElement>(null);
   const pre = useRef<HTMLPreElement>(null);
   const gutter = useRef<HTMLDivElement>(null);
@@ -69,7 +71,7 @@ export default function Editor({ value, onChange, errors, focusLine }: Props) {
         <textarea
           id="lab-code"
           ref={ta}
-          aria-label="Mã assembly RISC-V"
+          aria-label={t('Mã assembly RISC-V', 'RISC-V assembly code')}
           spellCheck={false}
           autoCapitalize="off"
           autoCorrect="off"

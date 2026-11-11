@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useRef } from 'react';
+import { L } from '@/components/i18n';
+import { useT } from '@/lib/lang';
 import * as RV from '@/lib/riscv.mjs';
 import { highlightAsmLine } from '@/lib/highlight';
 import type { Prog, SimT } from './Lab';
@@ -16,6 +18,7 @@ type Props = {
 
 /** Bảng các lệnh đã dịch: địa chỉ, mã máy, lệnh thật, dòng nguồn. Dòng tô vàng = lệnh sắp chạy (PC). */
 export default function ExecView({ prog, sim, bps, toggleBp, sel, setSel }: Props) {
+  const tr = useT();
   const box = useRef<HTMLDivElement>(null);
   const rows = useMemo(
     () => prog.text.map((t) => ({ ...t, d: RV.decode(t.word, t.addr), srcHtml: highlightAsmLine(t.src) })),
@@ -39,12 +42,12 @@ export default function ExecView({ prog, sim, bps, toggleBp, sel, setSel }: Prop
       <table>
         <thead>
           <tr>
-            <th title="Bấm để đặt điểm dừng (breakpoint)">●</th>
-            <th>Địa chỉ</th>
-            <th>Mã máy</th>
-            <th>Lệnh thật</th>
-            <th>Dòng</th>
-            <th>Mã nguồn</th>
+            <th title={tr('Bấm để đặt điểm dừng (breakpoint)', 'Click to set a breakpoint')}>●</th>
+            <th><L vi="Địa chỉ" en="Address" /></th>
+            <th><L vi="Mã máy" en="Machine code" /></th>
+            <th><L vi="Lệnh thật" en="Basic" /></th>
+            <th><L vi="Dòng" en="Line" /></th>
+            <th><L vi="Mã nguồn" en="Source" /></th>
           </tr>
         </thead>
         <tbody>
@@ -59,7 +62,7 @@ export default function ExecView({ prog, sim, bps, toggleBp, sel, setSel }: Prop
               <tr key={t.addr} className={cls} onClick={() => setSel(t.addr === sel ? null : t.addr)}>
                 <td className="bp">
                   <button
-                    aria-label={`Điểm dừng tại ${RV.hex8(t.addr)}`}
+                    aria-label={`${tr('Điểm dừng tại', 'Breakpoint at')} ${RV.hex8(t.addr)}`}
                     aria-pressed={bps.has(t.addr)}
                     onClick={(e) => { e.stopPropagation(); toggleBp(t.addr); }}
                   />
@@ -69,14 +72,14 @@ export default function ExecView({ prog, sim, bps, toggleBp, sel, setSel }: Prop
                 <td className="mono basic" title={t.d.abiText}>{t.d.text}</td>
                 <td className="mono ln">{t.first ? t.line : ''}</td>
                 <td className="mono src">
-                  {t.first ? <span dangerouslySetInnerHTML={{ __html: t.srcHtml }} /> : <span className="cont">↳ phần tiếp của lệnh giả</span>}
+                  {t.first ? <span dangerouslySetInnerHTML={{ __html: t.srcHtml }} /> : <span className="cont">↳ <L vi="phần tiếp của lệnh giả" en="continuation of the pseudo-instruction" /></span>}
                 </td>
               </tr>
             );
           })}
         </tbody>
       </table>
-      {rows.length === 0 && <p className="ex-empty">Chưa có lệnh nào trong .text.</p>}
+      {rows.length === 0 && <p className="ex-empty"><L vi="Chưa có lệnh nào trong .text." en="There are no instructions in .text yet." /></p>}
     </div>
   );
 }

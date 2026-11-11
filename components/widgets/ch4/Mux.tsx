@@ -2,23 +2,32 @@
 
 import { useState } from 'react';
 import { Widget } from '@/components/lesson/Blocks';
+import { L } from '@/components/i18n';
+import { useT } from '@/lib/lang';
 
 /** MUX 2-1: S chọn đầu vào nào đi ra. C = A·S̄ + B·S */
 export default function Mux() {
+  const t = useT();
   const [a, setA] = useState(1);
   const [b, setB] = useState(0);
   const [s, setS] = useState(0);
   const t1 = a & (1 - s), t2 = b & s, c = t1 | t2;
   const w = (on: number) => (on ? 'var(--signal)' : 'var(--line)');
   return (
-    <Widget title="Bộ chọn MUX 2-1" hint="S = 0 thì C = A; S = 1 thì C = B. Bên dưới là mạch thật làm việc đó bằng 2 cổng AND, 1 cổng OR, 1 cổng NOT.">
+    <Widget
+      title={<L vi="Bộ chọn MUX 2-1" en="2-to-1 multiplexer (MUX)" />}
+      hint={<L
+        vi="S = 0 thì C = A; S = 1 thì C = B. Bên dưới là mạch thật làm việc đó bằng 2 cổng AND, 1 cổng OR, 1 cổng NOT."
+        en="S = 0 gives C = A; S = 1 gives C = B. Below is the actual circuit that does this with 2 AND gates, 1 OR gate and 1 NOT gate."
+      />}
+    >
       <div className="chips">
         {([['A', a, setA], ['B', b, setB], ['S', s, setS]] as const).map(([n, v, set]) => (
           <button key={n} className={`toggle${v ? ' on' : ''}`} onClick={() => set(1 - v)} aria-pressed={!!v}><span className="knob">{v}</span>{n}</button>
         ))}
       </div>
       <div className="svgbox">
-        <svg viewBox="0 0 620 230" role="img" aria-label="Mạch MUX 2-1">
+        <svg viewBox="0 0 620 230" role="img" aria-label={t('Mạch MUX 2-1', '2-to-1 MUX circuit')}>
           <text x={10} y={54} className="mx-in">A = {a}</text>
           <text x={10} y={174} className="mx-in">B = {b}</text>
           <text x={10} y={118} className="mx-in">S = {s}</text>
@@ -56,7 +65,9 @@ export default function Mux() {
           <text x={540} y={106} className="mx-in">C = {c}</text>
         </svg>
       </div>
-      <p className="explain mono">C = A·S̄ + B·S = {a}·{1 - s} + {b}·{s} = {t1} + {t2} = {c}   → {s ? 'S = 1 nên C đi theo B' : 'S = 0 nên C đi theo A'}</p>
+      <p className="explain mono">
+        C = A·S̄ + B·S = {a}·{1 - s} + {b}·{s} = {t1} + {t2} = {c}   → {s ? t('S = 1 nên C đi theo B', 'S = 1, so C follows B') : t('S = 0 nên C đi theo A', 'S = 0, so C follows A')}
+      </p>
     </Widget>
   );
 }

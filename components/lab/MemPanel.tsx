@@ -1,6 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { L } from '@/components/i18n';
+import { useT } from '@/lib/lang';
 import * as RV from '@/lib/riscv.mjs';
 import type { Prog, SimT } from './Lab';
 
@@ -10,6 +12,7 @@ const printable = (b: number) => (b >= 32 && b < 127 ? String.fromCharCode(b) : 
 
 /** Xem bộ nhớ: vùng .data theo byte/word, stack (địa chỉ cao ở trên), hoặc vùng code. */
 export default function MemPanel({ sim, prog }: { sim: SimT; prog: Prog | null }) {
+  const t = useT();
   const [seg, setSeg] = useState<Seg>('data');
   const [fmt, setFmt] = useState<'byte' | 'word'>('byte');
   const rec = sim.lastRec;
@@ -34,7 +37,7 @@ export default function MemPanel({ sim, prog }: { sim: SimT; prog: Prog | null }
 
   let body: React.ReactNode = null;
   if (!prog) {
-    body = <p className="panel-empty">Dịch chương trình để xem bộ nhớ.</p>;
+    body = <p className="panel-empty"><L vi="Dịch chương trình để xem bộ nhớ." en="Assemble the program to see memory." /></p>;
   } else if (seg === 'data') {
     const end = Math.min(Math.max(prog.dataEnd, RV.DATA_BASE + 32), RV.DATA_BASE + 1024);
     const per = fmt === 'byte' ? 8 : 16;
@@ -45,7 +48,7 @@ export default function MemPanel({ sim, prog }: { sim: SimT; prog: Prog | null }
         <table className="mem mono">
           <thead>
             <tr>
-              <th>Địa chỉ</th>
+              <th><L vi="Địa chỉ" en="Address" /></th>
               {fmt === 'byte'
                 ? Array.from({ length: 8 }, (_, i) => <th key={i}>+{i}</th>)
                 : [0, 4, 8, 12].map((o) => <th key={o}>+{o}</th>)}
@@ -98,10 +101,10 @@ export default function MemPanel({ sim, prog }: { sim: SimT; prog: Prog | null }
     const fp = sim.x[8] >>> 0;
     body = (
       <>
-        <p className="panel-note">Stack mọc <b>xuống</b> (về địa chỉ thấp). Ô tô vàng = vừa ghi. Đáy stack ở trên cùng.</p>
+        <p className="panel-note"><L vi={<>Stack mọc <b>xuống</b> (về địa chỉ thấp). Ô tô vàng = vừa ghi. Đáy stack ở trên cùng.</>} en={<>The stack grows <b>down</b> (toward lower addresses). Yellow = just written. The bottom of the stack is at the top.</>} /></p>
         <table className="mem stack mono">
           <thead>
-            <tr><th>Địa chỉ</th><th>Hex</th><th>Thập phân</th><th /></tr>
+            <tr><th><L vi="Địa chỉ" en="Address" /></th><th>Hex</th><th><L vi="Thập phân" en="Decimal" /></th><th /></tr>
           </thead>
           <tbody>
             {rows.map((a) => {
@@ -123,7 +126,7 @@ export default function MemPanel({ sim, prog }: { sim: SimT; prog: Prog | null }
   } else {
     body = (
       <table className="mem mono">
-        <thead><tr><th>Địa chỉ</th><th>Mã máy</th><th>Lệnh</th></tr></thead>
+        <thead><tr><th><L vi="Địa chỉ" en="Address" /></th><th><L vi="Mã máy" en="Machine code" /></th><th><L vi="Lệnh" en="Instruction" /></th></tr></thead>
         <tbody>
           {prog.text.map((t) => (
             <tr key={t.addr} className={t.addr === sim.pc ? 'is-sp' : ''}>
@@ -140,13 +143,13 @@ export default function MemPanel({ sim, prog }: { sim: SimT; prog: Prog | null }
   return (
     <div className="panel">
       <div className="panel-head">
-        <div className="seg" role="group" aria-label="Vùng nhớ">
+        <div className="seg" role="group" aria-label={t('Vùng nhớ', 'Memory segment')}>
           <button className={seg === 'data' ? 'on' : ''} onClick={() => setSeg('data')}>.data</button>
           <button className={seg === 'stack' ? 'on' : ''} onClick={() => setSeg('stack')}>Stack</button>
           <button className={seg === 'text' ? 'on' : ''} onClick={() => setSeg('text')}>.text</button>
         </div>
         {seg === 'data' && (
-          <div className="seg" role="group" aria-label="Kiểu hiển thị">
+          <div className="seg" role="group" aria-label={t('Kiểu hiển thị', 'Display mode')}>
             <button className={fmt === 'byte' ? 'on' : ''} onClick={() => setFmt('byte')}>Byte</button>
             <button className={fmt === 'word' ? 'on' : ''} onClick={() => setFmt('word')}>Word</button>
           </div>
@@ -154,7 +157,7 @@ export default function MemPanel({ sim, prog }: { sim: SimT; prog: Prog | null }
       </div>
       <div className="mem-scroll">{body}</div>
       {seg === 'data' && fmt === 'word' && (
-        <p className="panel-note">Chế độ Word đọc 4 byte theo <b>little-endian</b>: byte ở địa chỉ thấp nhất đứng cuối.</p>
+        <p className="panel-note"><L vi={<>Chế độ Word đọc 4 byte theo <b>little-endian</b>: byte ở địa chỉ thấp nhất đứng cuối.</>} en={<>Word mode reads 4 bytes as <b>little-endian</b>: the byte at the lowest address comes last.</>} /></p>
       )}
     </div>
   );

@@ -269,3 +269,32 @@
     border-color: var(--accent);
   }
 }
+
+.lang-switch {
+  display: inline-flex;
+  align-self: flex-start;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px;
+  background: var(--sunk);
+}
+.lang-switch button {
+  border: 0;
+  background: transparent;
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.lang-switch button.on {
+  background: var(--accent);
+  color: var(--panel);
+}
+.lang-switch.compact button {
+  padding: 3px 8px;
+}
+.topbar .lang-switch {
+  align-self: center;
+}
